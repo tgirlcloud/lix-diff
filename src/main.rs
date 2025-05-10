@@ -1,0 +1,46 @@
+use argh::FromArgs;
+use color_eyre::Result;
+use nu_ansi_term::{Color, Style};
+
+mod diff;
+mod package;
+mod parser;
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// List the package differences between two `NixOS` generations
+struct Args {
+    /// the generation we are switching from
+    #[argh(positional)]
+    before: String,
+
+    /// the generation we are switching to
+    #[argh(positional)]
+    after: String,
+}
+
+fn main() -> Result<()> {
+    let args: Args = argh::from_env();
+    let before = args.before;
+    let after = args.after;
+
+    // Check if the generations are valid
+    if before.is_empty() || after.is_empty() {
+        eprintln!("Both generations must be specified.");
+        std::process::exit(1);
+    }
+
+    let diff = parser::diff(&before, &after)?;
+    let packages = diff::partition_diff(&diff);
+
+    let arrow_style = Style::new().bold().fg(Color::LightGray);
+
+    let before_text = format!("<<< {before}");
+    let after_text = format!(">>> {after}");
+
+    println!("{}", arrow_style.paint(before_text));
+    println!("{}\n", arrow_style.paint(after_text));
+
+    println!("{packages}");
+
+    Ok(())
+}

@@ -61,29 +61,35 @@ impl std::fmt::Display for PackageListDiff {
 
         let name_width = self.longest_name + 2;
 
-        writeln!(f, "{}", &title_style.paint("Changed"))?;
-        for (name, package) in &self.changed {
-            writeln!(f, "[{}] {name:name_width$}{package}", Yellow.paint("C"))?;
-        }
-
-        writeln!(f)?;
-        writeln!(f, "{}", &title_style.paint("Added"))?;
-        for (name, package) in &self.added {
-            write!(f, "[{}] {name:name_width$}{package}", Green.paint("A"))?;
+        if !self.changed.is_empty() {
+            writeln!(f, "{}", &title_style.paint("Changed"))?;
+            for (name, package) in &self.changed {
+                writeln!(f, "[{}] {name:name_width$}{package}", Yellow.paint("C"))?;
+            }
             writeln!(f)?;
         }
 
-        writeln!(f)?;
-        writeln!(f, "{}", &title_style.paint("Removed"))?;
-        for (name, package) in &self.removed {
-            writeln!(f, "[{}] {name:name_width$}{package}", Red.paint("R"))?;
+        if !self.added.is_empty() {
+            writeln!(f, "{}", &title_style.paint("Added"))?;
+            for (name, package) in &self.added {
+                write!(f, "[{}] {name:name_width$}{package}", Green.paint("A"))?;
+                writeln!(f)?;
+            }
+            writeln!(f)?;
+        }
+
+        if !self.removed.is_empty() {
+            writeln!(f, "{}", &title_style.paint("Removed"))?;
+            for (name, package) in &self.removed {
+                writeln!(f, "[{}] {name:name_width$}{package}", Red.paint("R"))?;
+            }
+            writeln!(f)?;
         }
 
         {
             let delta = self.size_delta;
             let sign = if delta > 0 { "+" } else { "-" };
             let size: u64 = delta.abs().try_into().unwrap_or(0);
-            writeln!(f)?;
             writeln!(f, "size diff: {sign}{}", format_size(size, DECIMAL))?;
         }
 

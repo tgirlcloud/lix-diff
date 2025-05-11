@@ -23,6 +23,6 @@ rustPlatform.buildRustPackage {
     inherit (toml) homepage description;
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ isabelroses ];
-    mainProgram = "nvd";
+    mainProgram = "lix-diff";
   };
 }

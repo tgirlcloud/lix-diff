@@ -1,8 +1,10 @@
+use std::borrow::Cow;
+
 use nu_ansi_term::Color::{Green, Red};
 use serde::de::Deserializer;
 use serde::Deserialize;
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq)]
 pub enum DiffType {
     Added,
     Removed,
@@ -12,7 +14,7 @@ pub enum DiffType {
     Unknown,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Package {
     pub size_delta: i64,
@@ -32,14 +34,14 @@ fn version_deserializer<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error
 where
     D: Deserializer<'de>,
 {
-    let vec = Vec::<String>::deserialize(deserializer)?;
+    let vec = Vec::<Cow<'de, str>>::deserialize(deserializer)?;
     Ok(vec
         .into_iter()
         .map(|s| {
             if s.is_empty() {
                 "<none>".to_string()
             } else {
-                s
+                s.into_owned()
             }
         })
         .collect())

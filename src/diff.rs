@@ -14,37 +14,38 @@ pub struct PackageListDiff {
     longest_name: usize,
 }
 
-pub fn partition_diff(diff: &DiffRoot) -> PackageListDiff {
-    let mut added = BTreeMap::new();
-    let mut removed = BTreeMap::new();
-    let mut changed = BTreeMap::new();
-    let mut size_delta: i64 = 0;
-    let mut longest_name = 0;
+impl From<DiffRoot> for PackageListDiff {
+    fn from(diff: DiffRoot) -> Self {
+        let mut out = PackageListDiff {
+            added: BTreeMap::new(),
+            removed: BTreeMap::new(),
+            changed: BTreeMap::new(),
+            size_delta: 0,
+            longest_name: 0,
+        };
 
-    for (name, package) in &diff.packages {
-        match package.diff_type {
-            DiffType::Added => {
-                added.insert(name.clone(), package.clone());
+        for (name, package) in diff.packages {
+            out.size_delta += package.size_delta;
+            out.longest_name = out.longest_name.max(name.len());
+
+            match package.diff_type {
+                DiffType::Added => {
+                    out.added.insert(name, package);
+                }
+                DiffType::Removed => {
+                    out.removed.insert(name, package);
+                }
+                DiffType::Changed => {
+                    out.changed.insert(name, package);
+                }
+                DiffType::Unknown => {
+                    // This should never happen, but just in case
+                    eprintln!("Unknown diff type for package: {name}");
+                }
             }
-            DiffType::Removed => {
-                removed.insert(name.clone(), package.clone());
-            }
-            DiffType::Changed => {
-                changed.insert(name.clone(), package.clone());
-            }
-            _ => {}
         }
 
-        size_delta += package.size_delta;
-        longest_name = longest_name.max(name.len());
-    }
-
-    PackageListDiff {
-        added,
-        removed,
-        changed,
-        size_delta,
-        longest_name,
+        out
     }
 }
 

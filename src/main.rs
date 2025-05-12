@@ -2,6 +2,7 @@ use std::env;
 
 use argh::FromArgs;
 use color_eyre::Result;
+use diff::PackageListDiff;
 use nu_ansi_term::{Color, Style};
 
 mod diff;
@@ -44,8 +45,7 @@ fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let diff = parser::diff(&before, &after)?;
-    let packages = diff::partition_diff(&diff);
+    let packages: PackageListDiff = parser::diff(&before, &after)?.into();
 
     let arrow_style = Style::new().bold().fg(Color::LightGray);
 

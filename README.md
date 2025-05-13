@@ -1,5 +1,8 @@
 # lix-diff
 
+
+![example](assets/2025-05-13-12-30-48.png)
+
 ## Description
 
 This is a nix plugin built upon the [`lix`](https://lix.systems/) package manager. It

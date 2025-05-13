@@ -63,13 +63,12 @@ impl VersionList {
 
 impl Display for VersionList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut out = String::new();
-        for version in &self.0 {
-            out.push_str(&version.to_string());
-            out.push_str(", ");
-        }
-        out.pop(); // remove last comma
-        out.pop(); // remove last space
+        let out = self
+            .0
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(", ");
         write!(f, "{out}")
     }
 }

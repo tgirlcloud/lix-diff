@@ -1,13 +1,13 @@
 use nu_ansi_term::Color::{Green, Red, Yellow};
 use std::{cmp::Ordering, fmt::Display};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct VersionComponent(String, Ordering);
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Version(Vec<VersionComponent>);
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct VersionList(pub Vec<Version>);
 
 impl VersionComponent {

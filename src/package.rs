@@ -75,31 +75,28 @@ impl From<DiffPackage> for Package {
 }
 
 fn handle_diff_added(versions_after: &[String]) -> (VersionList, VersionList) {
-    let mut parsed_after = VersionList::new();
-
-    for after in versions_after {
-        let parts_after = after.split('.').map(String::from);
-        let mut version = Version::new();
-        for part in parts_after {
-            version.push(VersionComponent::new(part, Ordering::Greater));
-        }
-        parsed_after.push(version);
-    }
-
-    (VersionList::new(), parsed_after)
+    let after = to_version_list(versions_after, Ordering::Greater);
+    (VersionList::new(), after)
 }
 
 fn handle_diff_removed(versions_before: &[String]) -> (VersionList, VersionList) {
-    let mut parsed_before = VersionList::new();
-    for before in versions_before {
+    let before = to_version_list(versions_before, Ordering::Less);
+    (before, VersionList::new())
+}
+
+fn to_version_list(versions: &[String], order: Ordering) -> VersionList {
+    let mut version_list = VersionList::new();
+
+    for before in versions {
         let parts_before = before.split('.').map(String::from);
         let mut version = Version::new();
         for part in parts_before {
-            version.push(VersionComponent::new(part, Ordering::Less));
+            version.push(VersionComponent::new(part, order));
         }
-        parsed_before.push(version);
+        version_list.push(version);
     }
-    (parsed_before, VersionList::new())
+
+    version_list
 }
 
 fn handle_diff_changed(

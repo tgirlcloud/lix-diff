@@ -8,6 +8,9 @@ use nu_ansi_term::{Color, Style};
 mod diff;
 mod package;
 mod parser;
+mod versioning;
+
+use self::parser::DiffRoot;
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// List the package differences between two `NixOS` generations
@@ -45,7 +48,7 @@ fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let packages: PackageListDiff = parser::diff(&before, &after)?.into();
+    let packages: PackageListDiff = DiffRoot::new(&before, &after)?.into();
 
     let arrow_style = Style::new().bold().fg(Color::LightGray);
 

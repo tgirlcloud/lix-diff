@@ -19,3 +19,11 @@ serde_json = "1.0.140"
 all = "warn"
 pedantic = "warn"
 unreadable_literal = { level = "allow", priority = 1 }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+

@@ -1,72 +1,70 @@
 use color_eyre::Result;
+use serde::de::Deserializer;
 use serde::Deserialize;
-use std::{collections::BTreeMap, process::Command};
+use std::{borrow::Cow, collections::BTreeMap, process::Command};
 
-use crate::package::{DiffType, Package};
-
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub struct DiffRoot {
-    pub packages: BTreeMap<String, Package>,
+    pub packages: BTreeMap<String, DiffPackage>,
 
     #[expect(dead_code)]
     pub schema: String,
 }
 
-impl<'de> Deserialize<'de> for DiffRoot {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct Raw {
-            packages: BTreeMap<String, Package>,
-            schema: String,
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiffPackage {
+    pub size_delta: i64,
+
+    #[serde(deserialize_with = "version_deserializer")]
+    pub versions_before: Vec<String>,
+
+    #[serde(deserialize_with = "version_deserializer")]
+    pub versions_after: Vec<String>,
+}
+
+fn version_deserializer<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let vec = Vec::<Cow<'de, str>>::deserialize(deserializer)?;
+    Ok(vec
+        .into_iter()
+        .map(|s| {
+            if s.is_empty() {
+                "<none>".to_string()
+            } else {
+                s.into_owned()
+            }
+        })
+        .collect())
+}
+
+impl DiffRoot {
+    pub fn new(before: &str, after: &str) -> Result<DiffRoot> {
+        let raw_diff = Command::new("nix")
+            .args(["store", "diff-closures", "--json", before, after])
+            .output()?;
+
+        if !raw_diff.status.success() {
+            eprintln!("{}", String::from_utf8_lossy(&raw_diff.stderr));
+            std::process::exit(1);
         }
 
-        let Raw {
-            mut packages,
-            schema,
-        } = Raw::deserialize(deserializer)?;
-
-        for pkg in packages.values_mut() {
-            pkg.diff_type = DiffType::from_versions(&pkg.versions_before, &pkg.versions_after);
+        let stdout = raw_diff.stdout;
+        if stdout.is_empty() {
+            eprintln!("No differences found.");
+            std::process::exit(0);
         }
 
-        Ok(DiffRoot { packages, schema })
+        // Assume nix output is valid UTF-8
+        let diff_out = String::from_utf8(stdout)?;
+
+        let diff_root = serde_json::from_str::<DiffRoot>(&diff_out).map_err(|e| {
+            eprintln!("Failed to parse JSON: {e}");
+            std::process::exit(1);
+        })?;
+
+        Ok(diff_root)
     }
-}
-
-fn run_diff(before: &str, after: &str) -> String {
-    let raw_diff = Command::new("nix")
-        .args(["store", "diff-closures", "--json", before, after])
-        .output()
-        .expect("Failed to execute nix command");
-
-    if !raw_diff.status.success() {
-        eprintln!("{}", String::from_utf8_lossy(&raw_diff.stderr));
-        std::process::exit(1);
-    }
-
-    let stdout = raw_diff.stdout;
-    if stdout.is_empty() {
-        eprintln!("No differences found.");
-        std::process::exit(0);
-    }
-
-    // Assume nix output is valid UTF-8
-    String::from_utf8(stdout).expect("Output was not valid UTF-8")
-}
-
-fn parse_diff(input: &str) -> Result<DiffRoot> {
-    serde_json::from_str::<DiffRoot>(input).map_err(|e| {
-        eprintln!("Failed to parse JSON: {e}");
-        std::process::exit(1);
-    })
-}
-
-pub fn diff(before: &str, after: &str) -> Result<DiffRoot> {
-    let diff_output = run_diff(before, after);
-    let diff_root: DiffRoot = parse_diff(&diff_output)?;
-
-    Ok(diff_root)
 }

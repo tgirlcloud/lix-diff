@@ -2,8 +2,10 @@ use humansize::{format_size, DECIMAL};
 use nu_ansi_term::Color::{self, Green, Red, Yellow};
 use std::collections::BTreeMap;
 
-use crate::package::{DiffType, Package};
-use crate::parser::DiffRoot;
+use super::{
+    package::{DiffType, Package},
+    parser::DiffRoot,
+};
 
 #[derive(Debug)]
 pub struct PackageListDiff {
@@ -24,7 +26,9 @@ impl From<DiffRoot> for PackageListDiff {
             longest_name: 0,
         };
 
-        for (name, package) in diff.packages {
+        for (name, diff_package) in diff.packages {
+            let package = Package::from(diff_package);
+
             out.size_delta += package.size_delta;
             out.longest_name = out.longest_name.max(name.len());
 

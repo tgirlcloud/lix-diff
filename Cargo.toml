@@ -4,7 +4,7 @@ version = "0.0.1"
 license = "MIT"
 description = "A lix plugin for diffing two generations"
 homepage = "https://github.com/isabelroses/lix-diff"
-authors = []
+authors = ["Isabel Roses <isabel@isabelroses.com>"]
 edition = "2024"
 
 [dependencies]

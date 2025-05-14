@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, path::PathBuf};
 
 use argh::FromArgs;
 use color_eyre::Result;
@@ -21,11 +21,11 @@ struct Args {
 
     /// the generation we are switching from
     #[argh(positional)]
-    before: String,
+    before: PathBuf,
 
     /// the generation we are switching to
-    #[argh(positional, default = "String::from(\"/run/current-system/\")")]
-    after: String,
+    #[argh(positional, default = "PathBuf::from(\"/run/current-system/\")")]
+    after: PathBuf,
 }
 
 fn main() -> Result<()> {
@@ -42,18 +42,27 @@ fn main() -> Result<()> {
         }
     }
 
-    // Check if the generations are valid
-    if before.is_empty() || after.is_empty() {
-        eprintln!("Both generations must be specified.");
+    if !before.exists() {
+        eprintln!("Before generation does not exist: {}", before.display());
         std::process::exit(1);
     }
 
-    let packages: PackageListDiff = DiffRoot::new(&before, &after)?.into();
+    if !after.exists() {
+        eprintln!("After generation does not exist: {}", after.display());
+        std::process::exit(1);
+    }
+
+    let before_str = before
+        .to_str()
+        .expect("could not convert before path to str");
+    let after_str = after.to_str().expect("could not convert after path to str");
+
+    let packages: PackageListDiff = DiffRoot::new(before_str, after_str)?.into();
 
     let arrow_style = Style::new().bold().fg(Color::LightGray);
 
-    let before_text = format!("<<< {before}");
-    let after_text = format!(">>> {after}");
+    let before_text = format!("<<< {before_str}");
+    let after_text = format!(">>> {after_str}");
 
     println!("{}", arrow_style.paint(before_text));
     println!("{}\n", arrow_style.paint(after_text));

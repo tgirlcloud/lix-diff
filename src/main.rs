@@ -17,7 +17,7 @@ use self::parser::DiffRoot;
 struct Args {
     /// the path to the lix bin directory
     #[argh(option, short = 'l')]
-    lix_bin: Option<String>,
+    lix_bin: Option<PathBuf>,
 
     /// the generation we are switching from
     #[argh(positional)]

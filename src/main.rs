@@ -35,8 +35,10 @@ fn main() -> Result<()> {
     let lix_bin = args.lix_bin;
 
     if let Some(lix_bin) = lix_bin {
-        let current_path = env::var("PATH").unwrap();
-        let new_path = format!("{lix_bin}:{current_path}");
+        let current_path = env::var_os("PATH").unwrap();
+        let current_path = env::split_paths(&current_path);
+        let new_path = std::iter::once(lix_bin).chain(current_path);
+        let new_path = env::join_paths(new_path).unwrap();
         unsafe {
             env::set_var("PATH", &new_path);
         }

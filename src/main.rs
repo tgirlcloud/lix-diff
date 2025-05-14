@@ -24,7 +24,7 @@ struct Args {
     before: String,
 
     /// the generation we are switching to
-    #[argh(positional)]
+    #[argh(positional, default = "String::from(\"/run/current-system/\")")]
     after: String,
 }
 

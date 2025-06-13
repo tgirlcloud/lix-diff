@@ -10,6 +10,20 @@ is intended that the experimental feature `lix-custom-sub-commands` which
 provides access to the `lix` command which allows for custom sub-commands to be
 used.
 
+## Installation
+
+Get it from nixpkgs:
+
+```bash
+nix profile install nixpkgs#lix-diff
+```
+
+Or get it from the flake:
+
+```bash
+nix profile install github:tgirlcloud/lix-diff
+```
+
 ## Usage
 
 The example below demonstrates the usage of the `lix diff` command.

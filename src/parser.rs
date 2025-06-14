@@ -1,7 +1,7 @@
 use color_eyre::Result;
-use serde::de::Deserializer;
 use serde::Deserialize;
-use std::{borrow::Cow, collections::BTreeMap, process::Command};
+use serde::de::Deserializer;
+use std::{borrow::Cow, collections::BTreeMap, path::Path, process::Command};
 
 #[derive(Deserialize, Debug)]
 pub struct DiffRoot {
@@ -41,9 +41,10 @@ where
 }
 
 impl DiffRoot {
-    pub fn new(before: &str, after: &str) -> Result<DiffRoot> {
+    pub fn new(before: &Path, after: &Path) -> Result<DiffRoot> {
         let raw_diff = Command::new("nix")
-            .args(["store", "diff-closures", "--json", before, after])
+            .args(["store", "diff-closures", "--json"])
+            .args([before, after])
             .output()?;
 
         if !raw_diff.status.success() {

@@ -54,17 +54,12 @@ fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let before_str = before
-        .to_str()
-        .expect("could not convert before path to str");
-    let after_str = after.to_str().expect("could not convert after path to str");
-
-    let packages: PackageListDiff = DiffRoot::new(before_str, after_str)?.into();
+    let packages: PackageListDiff = DiffRoot::new(&before, &after)?.into();
 
     let arrow_style = Style::new().bold().fg(Color::LightGray);
 
-    let before_text = format!("<<< {before_str}");
-    let after_text = format!(">>> {after_str}");
+    let before_text = format!("<<< {}", before.display());
+    let after_text = format!(">>> {}", after.display());
 
     println!("{}", arrow_style.paint(before_text));
     println!("{}\n", arrow_style.paint(after_text));

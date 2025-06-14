@@ -21,7 +21,7 @@ pedantic = "warn"
 unreadable_literal = { level = "allow", priority = 1 }
 
 [profile.release]
-opt-level = "z"
+opt-level = "s"
 lto = "fat"
 codegen-units = 1
 panic = "abort"

@@ -217,6 +217,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
+name = "lemon-sorbet"
+version = "1.0.1"
+dependencies = [
+ "clap",
+ "color-eyre",
+ "humansize",
+ "nu-ansi-term",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.172"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -227,18 +239,6 @@ name = "libm"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
-
-[[package]]
-name = "lix-diff"
-version = "1.0.1"
-dependencies = [
- "clap",
- "color-eyre",
- "humansize",
- "nu-ansi-term",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "memchr"

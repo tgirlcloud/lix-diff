@@ -17,6 +17,14 @@ rustPlatform.buildRustPackage {
     );
   };
 
+  postInstall =
+    # Create symlinks to multicall binary
+    lib.concatMapStringsSep "\n" (bin: ''ln -sv "$out/bin/lemon-sorbet" "$out/bin/${bin}"'')
+      # For each command in `lemon-sorbet`
+      [
+        "lix-diff"
+      ];
+
   cargoLock.lockFile = ./Cargo.lock;
 
   meta = {

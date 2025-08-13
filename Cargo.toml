@@ -1,8 +1,8 @@
 [package]
-name = "lix-diff"
+name = "lemon-sorbet"
 version = "1.0.1"
 license = "MIT"
-description = "A lix plugin for diffing two generations"
+description = "A lix plugin for doing sweet stuff with your derivations"
 homepage = "https://github.com/isabelroses/lix-diff"
 authors = ["Isabel Roses <isabel@isabelroses.com>"]
 edition = "2024"

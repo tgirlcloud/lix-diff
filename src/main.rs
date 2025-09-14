@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::Parser;
 use color_eyre::Result;
@@ -33,13 +33,12 @@ fn main() -> Result<()> {
     let after = args.after;
     let lix_bin = args.lix_bin;
 
+    let mut lix_exe = None;
     if let Some(lix_bin) = lix_bin {
-        let current_path = env::var_os("PATH").unwrap();
-        let current_path = env::split_paths(&current_path);
-        let new_path = std::iter::once(lix_bin).chain(current_path);
-        let new_path = env::join_paths(new_path).unwrap();
-        unsafe {
-            env::set_var("PATH", &new_path);
+        lix_exe = if lix_bin.is_dir() {
+            Some(lix_bin.join("nix"))
+        } else {
+            Some(lix_bin)
         }
     }
 
@@ -53,7 +52,7 @@ fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let packages: PackageListDiff = DiffRoot::new(&before, &after)?.into();
+    let packages: PackageListDiff = DiffRoot::new(lix_exe, &before, &after)?.into();
 
     let arrow_style = Style::new().bold().fg(Color::LightGray);
 

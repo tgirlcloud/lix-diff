@@ -52,7 +52,7 @@ impl DiffRoot {
             lix_exe = lix_path;
         } else {
             lix_exe = "nix".into();
-        };
+        }
 
         let raw_diff = Command::new(lix_exe)
             .args(["store", "diff-closures", "--json"])

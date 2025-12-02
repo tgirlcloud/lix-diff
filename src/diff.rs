@@ -1,64 +1,97 @@
-use humansize::{format_size, DECIMAL};
-use nu_ansi_term::Color::{self, Green, Red, Yellow};
+use nu_ansi_term::{
+    unstyle,
+    Color::{self, Green, Red, Yellow},
+};
 use std::collections::BTreeMap;
 
 use super::{
-    package::{DiffType, Package},
+    package::{DiffType, Package, SizeDelta},
     parser::DiffRoot,
 };
 
 #[derive(Debug)]
-pub struct PackageListDiff {
-    pub added: BTreeMap<String, Package>,
-    pub removed: BTreeMap<String, Package>,
-    pub changed: BTreeMap<String, Package>,
-    size_delta: i64,
-    longest_name: usize,
+pub struct PackageExtra {
+    name: String,
+    base_package: Package,
 }
 
-impl From<DiffRoot> for PackageListDiff {
-    fn from(diff: DiffRoot) -> Self {
-        let mut out = PackageListDiff {
+#[derive(Debug)]
+pub struct PackageListDiff {
+    all: Vec<PackageExtra>,
+    added: BTreeMap<String, Package>,
+    removed: BTreeMap<String, Package>,
+    changed: BTreeMap<String, Package>,
+    size_delta: SizeDelta,
+    longest_name: usize,
+
+    // Whether to sort by size difference when displaying
+    pub by_size: bool,
+}
+
+impl PackageListDiff {
+    pub fn new() -> Self {
+        PackageListDiff {
+            all: Vec::new(),
             added: BTreeMap::new(),
             removed: BTreeMap::new(),
             changed: BTreeMap::new(),
-            size_delta: 0,
+            size_delta: SizeDelta(0),
             longest_name: 0,
-        };
-
-        for (name, diff_package) in diff.packages {
-            let package = Package::from(diff_package);
-
-            out.size_delta += package.size_delta;
-            out.longest_name = out.longest_name.max(name.len());
-
-            match package.diff_type {
-                DiffType::Added => {
-                    out.added.insert(name, package);
-                }
-                DiffType::Removed => {
-                    out.removed.insert(name, package);
-                }
-                DiffType::Changed => {
-                    out.changed.insert(name, package);
-                }
-                DiffType::Unknown => {
-                    // This should never happen, but just in case
-                    eprintln!("Unknown diff type for package: {name}");
-                }
-            }
+            by_size: false,
         }
-
-        out
     }
 }
 
 impl std::fmt::Display for PackageListDiff {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.added.is_empty() && self.removed.is_empty() && self.changed.is_empty() {
-            return write!(f, "No differences found.");
+        if self.by_size {
+            self.display_by_size(f)?;
+        } else {
+            if self.added.is_empty() && self.removed.is_empty() && self.changed.is_empty() {
+                return write!(f, "No differences found.");
+            }
+
+            self.display_by_category(f)?;
         }
 
+        {
+            let delta = &self.size_delta;
+            writeln!(f, "size diff: {delta}")?;
+        }
+
+        Ok(())
+    }
+}
+
+impl PackageListDiff {
+    fn display_by_size(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let all = {
+            let mut v: Vec<_> = self.all.iter().collect();
+            v.sort_by_key(|pkg| -pkg.base_package.size_delta.0);
+            v
+        };
+
+        let name_width = self.longest_name + 2;
+        let package_width = all
+            .iter()
+            .map(|pkg| format!("{}", pkg.base_package).len())
+            .max()
+            .expect("At least one package exists")
+            + 2;
+
+        for package in &all {
+            let name = &package.name;
+            let package = &package.base_package;
+            let delta = &package.size_delta;
+            writeln!(f, "{name:name_width$}{package:package_width$}{delta}")?;
+        }
+
+        writeln!(f)?;
+
+        Ok(())
+    }
+
+    fn display_by_category(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let title_style = nu_ansi_term::Style::new()
             .underline()
             .bold()
@@ -91,13 +124,40 @@ impl std::fmt::Display for PackageListDiff {
             writeln!(f)?;
         }
 
-        {
-            let delta = self.size_delta;
-            let sign = if delta > 0 { "+" } else { "-" };
-            let size: u64 = delta.abs().try_into().unwrap_or(0);
-            writeln!(f, "size diff: {sign}{}", format_size(size, DECIMAL))?;
-        }
-
         Ok(())
+    }
+
+    pub fn from_diff_root(&mut self, diff_root: DiffRoot) {
+        for (name, diff_package) in diff_root.packages {
+            let package = Package::from(diff_package);
+
+            self.size_delta.0 += package.size_delta.0;
+            self.longest_name = self.longest_name.max(name.len());
+
+            if self.by_size {
+                self.all.push(PackageExtra {
+                    name,
+                    base_package: package,
+                });
+
+                continue;
+            }
+
+            match package.diff_type {
+                DiffType::Added => {
+                    self.added.insert(name, package);
+                }
+                DiffType::Removed => {
+                    self.removed.insert(name, package);
+                }
+                DiffType::Changed => {
+                    self.changed.insert(name, package);
+                }
+                DiffType::Unknown => {
+                    // This should never happen, but just in case
+                    eprintln!("Unknown diff type for package: {name}");
+                }
+            }
+        }
     }
 }

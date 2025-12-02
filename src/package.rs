@@ -1,3 +1,4 @@
+use humansize::{format_size, DECIMAL};
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
@@ -17,12 +18,15 @@ pub enum DiffType {
 
 #[derive(Debug)]
 pub struct Package {
-    pub size_delta: i64,
+    pub size_delta: SizeDelta,
     pub diff_type: DiffType,
 
     pub versions_before: VersionList,
     pub versions_after: VersionList,
 }
+
+#[derive(Debug)]
+pub struct SizeDelta(pub i64);
 
 impl DiffType {
     pub fn from_versions(before: &[String], after: &[String]) -> DiffType {
@@ -66,7 +70,7 @@ impl From<DiffPackage> for Package {
         };
 
         Package {
-            size_delta: diff.size_delta,
+            size_delta: diff.size_delta.into(),
             versions_before: parsed_before,
             versions_after: parsed_after,
             diff_type,
@@ -132,4 +136,18 @@ fn handle_diff_changed(
     }
 
     (parsed_before, parsed_after)
+}
+
+impl std::fmt::Display for SizeDelta {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let sign = if self.0 >= 0 { "+" } else { "-" };
+        let size: u64 = self.0.abs().try_into().unwrap_or(0);
+        write!(f, "{sign}{}", format_size(size, DECIMAL))
+    }
+}
+
+impl From<i64> for SizeDelta {
+    fn from(size: i64) -> Self {
+        SizeDelta(size)
+    }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "lix-diff"
-version = "1.1.0"
+version = "1.1.1"
 license = "MIT"
 description = "A lix plugin for diffing two generations"
 homepage = "https://github.com/tgirlcloud/lix-diff"

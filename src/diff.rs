@@ -1,5 +1,6 @@
 use nu_ansi_term::Color::{self, Green, Red, Yellow};
 use std::collections::BTreeMap;
+use terminal_light::luma;
 
 use super::{
     package::{DiffType, Package, SizeDelta},
@@ -92,10 +93,12 @@ impl PackageListDiff {
     }
 
     fn display_by_category(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let title_style = nu_ansi_term::Style::new()
-            .underline()
-            .bold()
-            .fg(Color::LightGray);
+        let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
+            Color::DarkGray
+        } else {
+            Color::LightGray
+        };
+        let title_style = nu_ansi_term::Style::new().underline().bold().fg(text_color);
 
         let name_width = self.longest_name + 2;
 

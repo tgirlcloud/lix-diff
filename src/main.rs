@@ -4,6 +4,7 @@ use clap::Parser;
 use color_eyre::Result;
 use diff::PackageListDiff;
 use nu_ansi_term::{Color, Style};
+use terminal_light::luma;
 
 mod diff;
 mod package;
@@ -61,7 +62,12 @@ fn main() -> Result<()> {
     packages.by_size = args.size;
     packages.from_diff_root(packages_diff);
 
-    let arrow_style = Style::new().bold().fg(Color::LightGray);
+    let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
+        Color::DarkGray
+    } else {
+        Color::LightGray
+    };
+    let arrow_style = Style::new().bold().fg(text_color);
 
     let before_text = format!("<<< {}", before.display());
     let after_text = format!(">>> {}", after.display());

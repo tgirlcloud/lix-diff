@@ -127,6 +127,7 @@ impl PackageListDiff {
         Ok(())
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn from_diff_root(&mut self, diff_root: DiffRoot) {
         for (name, diff_package) in diff_root.packages {
             let package = Package::from(diff_package);

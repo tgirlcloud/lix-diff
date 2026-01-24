@@ -6,6 +6,7 @@ use diff::PackageListDiff;
 use nu_ansi_term::{Color, Style};
 use terminal_light::luma;
 
+mod color;
 mod diff;
 mod package;
 mod parser;
@@ -30,10 +31,18 @@ struct Args {
     /// sort by size difference
     #[arg(short, long)]
     size: bool,
+
+    /// disable colored output (also respects NO_COLOR env var and CI environments)
+    #[arg(long)]
+    no_color: bool,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    // Initialize color configuration
+    color::init(args.no_color);
+
     let before = args.before;
     let after = args.after;
     let lix_bin = args.lix_bin;
@@ -62,18 +71,22 @@ fn main() -> Result<()> {
     packages.by_size = args.size;
     packages.from_diff_root(packages_diff);
 
-    let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
-        Color::DarkGray
-    } else {
-        Color::LightGray
-    };
-    let arrow_style = Style::new().bold().fg(text_color);
-
     let before_text = format!("<<< {}", before.display());
     let after_text = format!(">>> {}", after.display());
 
-    println!("{}", arrow_style.paint(before_text));
-    println!("{}\n", arrow_style.paint(after_text));
+    if color::color_enabled() {
+        let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
+            Color::DarkGray
+        } else {
+            Color::LightGray
+        };
+        let arrow_style = Style::new().bold().fg(text_color);
+        println!("{}", arrow_style.paint(&before_text));
+        println!("{}\n", arrow_style.paint(&after_text));
+    } else {
+        println!("{before_text}");
+        println!("{after_text}\n");
+    }
 
     println!("{packages}");
 

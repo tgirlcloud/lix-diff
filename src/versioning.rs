@@ -1,6 +1,8 @@
 use nu_ansi_term::Color::{Green, Red, Yellow};
 use std::{cmp::Ordering, fmt::Display};
 
+use super::color;
+
 #[derive(Debug)]
 pub struct VersionComponent(String, Ordering);
 
@@ -34,12 +36,16 @@ impl Display for Version {
             let val = &component.0;
             let cmp = component.1;
 
-            let text = if cmp == Ordering::Less {
-                format!("{}", Red.paint(val))
-            } else if cmp == Ordering::Greater {
-                format!("{}", Green.paint(val))
+            let text = if color::color_enabled() {
+                if cmp == Ordering::Less {
+                    format!("{}", Red.paint(val))
+                } else if cmp == Ordering::Greater {
+                    format!("{}", Green.paint(val))
+                } else {
+                    format!("{}", Yellow.paint(val))
+                }
             } else {
-                format!("{}", Yellow.paint(val))
+                val.clone()
             };
 
             out.push_str(&text);

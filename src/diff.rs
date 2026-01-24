@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use terminal_light::luma;
 
 use super::{
+    color,
     package::{DiffType, Package, SizeDelta},
     parser::DiffRoot,
 };
@@ -93,38 +94,64 @@ impl PackageListDiff {
     }
 
     fn display_by_category(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
-            Color::DarkGray
-        } else {
-            Color::LightGray
-        };
-        let title_style = nu_ansi_term::Style::new().underline().bold().fg(text_color);
-
         let name_width = self.longest_name + 2;
 
-        if !self.changed.is_empty() {
-            writeln!(f, "{}", &title_style.paint("Changed"))?;
-            for (name, package) in &self.changed {
-                writeln!(f, "[{}] {name:name_width$}{package}", Yellow.paint("C"))?;
-            }
-            writeln!(f)?;
-        }
+        if color::color_enabled() {
+            let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
+                Color::DarkGray
+            } else {
+                Color::LightGray
+            };
+            let title_style = nu_ansi_term::Style::new().underline().bold().fg(text_color);
 
-        if !self.added.is_empty() {
-            writeln!(f, "{}", &title_style.paint("Added"))?;
-            for (name, package) in &self.added {
-                write!(f, "[{}] {name:name_width$}{package}", Green.paint("A"))?;
+            if !self.changed.is_empty() {
+                writeln!(f, "{}", &title_style.paint("Changed"))?;
+                for (name, package) in &self.changed {
+                    writeln!(f, "[{}] {name:name_width$}{package}", Yellow.paint("C"))?;
+                }
                 writeln!(f)?;
             }
-            writeln!(f)?;
-        }
 
-        if !self.removed.is_empty() {
-            writeln!(f, "{}", &title_style.paint("Removed"))?;
-            for (name, package) in &self.removed {
-                writeln!(f, "[{}] {name:name_width$}{package}", Red.paint("R"))?;
+            if !self.added.is_empty() {
+                writeln!(f, "{}", &title_style.paint("Added"))?;
+                for (name, package) in &self.added {
+                    write!(f, "[{}] {name:name_width$}{package}", Green.paint("A"))?;
+                    writeln!(f)?;
+                }
+                writeln!(f)?;
             }
-            writeln!(f)?;
+
+            if !self.removed.is_empty() {
+                writeln!(f, "{}", &title_style.paint("Removed"))?;
+                for (name, package) in &self.removed {
+                    writeln!(f, "[{}] {name:name_width$}{package}", Red.paint("R"))?;
+                }
+                writeln!(f)?;
+            }
+        } else {
+            if !self.changed.is_empty() {
+                writeln!(f, "Changed")?;
+                for (name, package) in &self.changed {
+                    writeln!(f, "[C] {name:name_width$}{package}")?;
+                }
+                writeln!(f)?;
+            }
+
+            if !self.added.is_empty() {
+                writeln!(f, "Added")?;
+                for (name, package) in &self.added {
+                    writeln!(f, "[A] {name:name_width$}{package}")?;
+                }
+                writeln!(f)?;
+            }
+
+            if !self.removed.is_empty() {
+                writeln!(f, "Removed")?;
+                for (name, package) in &self.removed {
+                    writeln!(f, "[R] {name:name_width$}{package}")?;
+                }
+                writeln!(f)?;
+            }
         }
 
         Ok(())

@@ -35,6 +35,10 @@ struct Args {
     /// disable colored output (also respects NO_COLOR env var and CI environments)
     #[arg(long)]
     no_color: bool,
+
+    /// disable the header showing the generation paths
+    #[arg(long)]
+    no_header: bool,
 }
 
 fn main() -> Result<()> {
@@ -74,18 +78,20 @@ fn main() -> Result<()> {
     let before_text = format!("<<< {}", before.display());
     let after_text = format!(">>> {}", after.display());
 
-    if color::color_enabled() {
-        let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
-            Color::DarkGray
+    if !args.no_header {
+        if color::color_enabled() {
+            let text_color = if luma().is_ok_and(|luma| luma > 0.6) {
+                Color::DarkGray
+            } else {
+                Color::LightGray
+            };
+            let arrow_style = Style::new().bold().fg(text_color);
+            println!("{}", arrow_style.paint(&before_text));
+            println!("{}\n", arrow_style.paint(&after_text));
         } else {
-            Color::LightGray
-        };
-        let arrow_style = Style::new().bold().fg(text_color);
-        println!("{}", arrow_style.paint(&before_text));
-        println!("{}\n", arrow_style.paint(&after_text));
-    } else {
-        println!("{before_text}");
-        println!("{after_text}\n");
+            println!("{before_text}");
+            println!("{after_text}\n");
+        }
     }
 
     println!("{packages}");

@@ -14,6 +14,7 @@ mod versioning;
 
 use self::parser::DiffRoot;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, PartialEq, Debug)]
 /// List the package differences between two `NixOS` generations
 struct Args {
@@ -39,6 +40,11 @@ struct Args {
     /// disable the header showing the generation paths
     #[arg(long)]
     no_header: bool,
+
+    /// add a return code indicating whether there are changes or no (1 if there are no changes, 0
+    /// otherwise)
+    #[arg(short, long = "return")]
+    return_code: bool,
 }
 
 fn main() -> Result<()> {
@@ -95,6 +101,10 @@ fn main() -> Result<()> {
     }
 
     println!("{packages}");
+
+    if args.return_code {
+        std::process::exit(if packages.is_empty() { 1 } else { 0 });
+    }
 
     Ok(())
 }

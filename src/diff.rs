@@ -15,6 +15,11 @@ pub struct PackageExtra {
 }
 
 #[derive(Debug)]
+pub struct PackageListDiffBuilder {
+    all: Vec<PackageExtra>,
+}
+
+#[derive(Debug)]
 pub struct PackageListDiff {
     all: Vec<PackageExtra>,
     added: BTreeMap<String, Package>,
@@ -38,6 +43,10 @@ impl PackageListDiff {
             longest_name: 0,
             by_size: false,
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.added.is_empty() && self.removed.is_empty() && self.changed.is_empty()
     }
 }
 

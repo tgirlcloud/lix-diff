@@ -39,6 +39,10 @@ impl PackageListDiff {
             by_size: false,
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.added.is_empty() && self.removed.is_empty() && self.changed.is_empty()
+    }
 }
 
 impl std::fmt::Display for PackageListDiff {

@@ -25,6 +25,9 @@ pub struct PackageListDiff {
 
     // Whether to sort by size difference when displaying
     pub by_size: bool,
+
+    // Whether to print the trailing "size diff: ..." line in [`Display`]
+    pub show_size_delta: bool,
 }
 
 impl PackageListDiff {
@@ -37,11 +40,16 @@ impl PackageListDiff {
             size_delta: SizeDelta(0),
             longest_name: 0,
             by_size: false,
+            show_size_delta: true,
         }
     }
 
     pub fn is_empty(&self) -> bool {
         self.added.is_empty() && self.removed.is_empty() && self.changed.is_empty()
+    }
+
+    pub fn size_delta(&self) -> &SizeDelta {
+        &self.size_delta
     }
 }
 
@@ -57,7 +65,7 @@ impl std::fmt::Display for PackageListDiff {
             self.display_by_category(f)?;
         }
 
-        {
+        if self.show_size_delta {
             let delta = &self.size_delta;
             writeln!(f, "size diff: {delta}")?;
         }

@@ -1,6 +1,6 @@
 [package]
 name = "lix-diff"
-version = "1.5.0"
+version = "1.5.1"
 license = "MIT"
 description = "A lix plugin for diffing two generations"
 homepage = "https://github.com/isabelroses/lix-diff"
@@ -22,6 +22,9 @@ terminal-light = "1.8.0"
 all = "warn"
 pedantic = "warn"
 unreadable_literal = { level = "allow", priority = 1 }
+must_use_candidate = { level = "allow", priority = 1 }
+new_without_default = { level = "allow", priority = 1 }
+missing_errors_doc = { level = "allow", priority = 1 }
 
 [profile.release]
 opt-level = "s"

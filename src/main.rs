@@ -2,18 +2,11 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use color_eyre::Result;
-use diff::PackageListDiff;
 use nu_ansi_term::{Color, Style};
 use shellexpand::path::tilde;
 use terminal_light::luma;
 
-mod color;
-mod diff;
-mod package;
-mod parser;
-mod versioning;
-
-use self::parser::DiffRoot;
+use lix_diff::{DiffRoot, PackageListDiff, color};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Parser, PartialEq, Debug)]
@@ -51,7 +44,6 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    // Initialize color configuration
     color::init(args.no_color);
 
     let before = tilde(&args.before);

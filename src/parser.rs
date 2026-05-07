@@ -6,8 +6,6 @@ use std::{borrow::Cow, collections::BTreeMap, path::Path, process::Command};
 #[derive(Deserialize, Debug)]
 pub struct DiffRoot {
     pub packages: BTreeMap<String, DiffPackage>,
-
-    #[expect(dead_code)]
     pub schema: String,
 }
 
